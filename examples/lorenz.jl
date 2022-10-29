@@ -42,6 +42,20 @@ end
 #===============================================================#
 
 function denoise!(sol)
+    x_shift = circshift(sol, (0,-1))
+    y_shift = circshift(sol, (-1,0))
+    x_diff = sol - x_shift
+    y_diff = sol - y_shift
+    grad_norm2 = x_diff ^ 2 + y_diff ^ 2 + 1.1920929e-07
+    norm = sum(sqrt.(grad_norm2))
+    dgrad_norm = 0.5 / sqrt.(grad_norm2)
+    dx_diff = 2 * x_diff * dgrad_norm
+    dy_diff = 2 * y_diff * dgrad_norm
+    grad = dx_diff + dy_diff
+    grad[:, 1:end, :] -= dx_diff[:, 1:-1, :]
+    grad[1:end, :, :] -= dy_diff[1:-1, :, :]
+
+    return norm, grad
 
 end
 
